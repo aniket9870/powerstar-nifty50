@@ -12,7 +12,7 @@ from starlette.exceptions import HTTPException
 
 import uvicorn
 
-from config import path_nifty_50
+from nifty.config import path_nifty_50
 
 
 def check_std_dev(filtered_nifty_df, formatted_price_data):
