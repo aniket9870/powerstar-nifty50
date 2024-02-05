@@ -18,15 +18,14 @@ from nifty.config import path_nifty_50
 def check_std_dev(filtered_nifty_df, formatted_price_data):
     '''
     Function to check if Prices are within 1 standard deviation of the prior 50 values for
-    combination of symbol and price-type. (Considering all 4 price-types here - "Close", "Open", "High", "Low")
-    *We can separate this function from this file and import from other file for code management*
+    combination of symbol and price-type. (Considering all 4 price-types here - "Close", "Open", "High", "Low").
+    Also *ASSUMING* the stocks to update, already have 50 previous records
+    *We can separate this function from this file and import from other file for code management & re-usability*
     '''
 
     valid_columns = ["Close", "Open", "High", "Low"]
     std_deviation = filtered_nifty_df[valid_columns].head(50).std()
     mean = filtered_nifty_df[valid_columns].head(50).mean()
-    print("mean", mean)
-    print("std_dev", std_deviation)
     std_price_data = []
 
     for prices in formatted_price_data:
@@ -106,7 +105,7 @@ async def add_price_data(request: Request) -> JSONResponse:
     symbol = request.path_params['symbol']
     price_json = await request.json()
 
-    '''Validation of the data received and make data compatible to enter in to CSV.'''
+    # Validation of the data received and make data compatible to enter in to CSV.
 
     valid_keys = ("date", "open", "close", "high", "low")
     date_format = "%d/%m/%Y"
@@ -144,7 +143,6 @@ async def add_price_data(request: Request) -> JSONResponse:
 
     # Checking duplicate entries before appending the final data to CSV,
     # although checking NOT just by ONLY Date but all columns
-    print(std_price_data)
     if std_price_data:
         std_price_data_df = pd.DataFrame.from_records(std_price_data)
         std_price_data_merge_df = pd.merge(std_price_data_df, nifty_df,
@@ -160,9 +158,10 @@ async def add_price_data(request: Request) -> JSONResponse:
 
     return JSONResponse({"code": 10, 'message': 'Details updated in CSV'})
 
+
 # Exception Handlers
 exception_handlers = {
-    HTTPException: http_exception
+    500: http_exception                 #Raise "Internal server error" when debug = False
 }
 
 # URL routes
